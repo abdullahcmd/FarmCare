@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import InputField from "../General/input";
 import CustomButton from "../General/Button";
 import { Colors } from "../../constants/colors";
+import { useAuth } from "../../context/AuthContext";
 
 const Register = () => {
+  const [name, setName] = useState("");
   const [number, setNumber] = useState("");
   const [location, setLocation] = useState("");
-  const [role, setRole] = useState("Farmer");
+  const [role, setRole] = useState("farmer");
   const [landUnit, setLandUnit] = useState("Acre");
   const [landSize, setLandSize] = useState("");
   const [education, setEducation] = useState("");
@@ -14,9 +17,60 @@ const Register = () => {
   const [pass, setPass] = useState("");
   const [confirmpass, setConfirmpassPass] = useState("");
   const [hover, setHover] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
-  const onClick = () => {
-    // ... logic
+  const onClick = async () => {
+    setError("");
+    
+    if (!name || !number || !location || !pass || !confirmpass) {
+      setError("Please fill in all required fields");
+      return;
+    }
+    
+    if (pass !== confirmpass) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    if (role === "farmer" && !landSize) {
+      setError("Please enter land size");
+      return;
+    }
+    
+    if (role === "expert" && !education) {
+      setError("Please enter education details");
+      return;
+    }
+    
+    setLoading(true);
+    
+    const userData = {
+      name,
+      number,
+      password: pass,
+      role: role.toLowerCase(),
+      location,
+    };
+    
+    if (role === "farmer") {
+      userData.land_unit = landUnit;
+      userData.land_area = parseFloat(landSize);
+    } else {
+      userData.education = education;
+      userData.experience_years = experience ? parseInt(experience) : null;
+    }
+    
+    const result = await register(userData);
+    setLoading(false);
+    
+    if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setError(result.error || "Registration failed");
+    }
   };
 
   // ✅ FIXED STYLE: Changed width to 90% so it covers the white area
@@ -26,13 +80,41 @@ const Register = () => {
     <div
       style={{ display: "flex", flexDirection: "column", paddingBottom: 20 }}
     >
-      {/* ❌ REMOVED <scroll> tag. It is invalid. */}
+      {error && (
+        <div
+          style={{
+            margin: "10px 20px",
+            padding: "10px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "5px",
+            fontSize: "14px",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <InputField
+        value={name}
+        type="text"
+        newStyle={inputStyle}
+        onChange={(e) => {
+          setName(e.target.value);
+          setError("");
+        }}
+        label={"Name:"}
+        placeholder={"Enter Your Name"}
+      />
 
       <InputField
         value={number}
         type="text"
         newStyle={inputStyle}
-        onChange={(e) => setNumber(e.target.value)}
+        onChange={(e) => {
+          setNumber(e.target.value);
+          setError("");
+        }}
         label={"Phone Number:"}
         placeholder={"Enter Phone Number"}
       />
@@ -45,9 +127,9 @@ const Register = () => {
         <label style={{ marginRight: 15, cursor: "pointer", color: "#333" }}>
           <input
             type="radio"
-            value="Farmer"
-            checked={role === "Farmer"}
-            onChange={() => setRole("Farmer")}
+            value="farmer"
+            checked={role === "farmer"}
+            onChange={() => setRole("farmer")}
             style={{ marginRight: 5 }}
           />
           Farmer
@@ -55,9 +137,9 @@ const Register = () => {
         <label style={{ cursor: "pointer", color: "#333" }}>
           <input
             type="radio"
-            value="Expert"
-            checked={role === "Expert"}
-            onChange={() => setRole("Expert")}
+            value="expert"
+            checked={role === "expert"}
+            onChange={() => setRole("expert")}
             style={{ marginRight: 5 }}
           />
           Expert
@@ -73,7 +155,7 @@ const Register = () => {
         placeholder={"Enter City/Area"}
       />
 
-      {role === "Farmer" && (
+      {role === "farmer" && (
         <div style={{ marginLeft: 20, width: "90%" }}>
           {" "}
           {/* Adjusted Width */}
@@ -122,7 +204,7 @@ const Register = () => {
         </div>
       )}
 
-      {role === "Expert" && (
+      {role === "expert" && (
         <>
           <InputField
             value={education}
@@ -159,11 +241,12 @@ const Register = () => {
         placeholder={"Re-enter password"}
       />
 
-      <CustomButton
+        <CustomButton
         isHovered={hover}
         setIsHovered={setHover}
-        text={"Submit"}
+        text={loading ? "Registering..." : "Submit"}
         onClick={onClick}
+        disabled={loading}
         style={{
           marginTop: 30,
           marginLeft: 20,
@@ -174,8 +257,9 @@ const Register = () => {
           textAlign: "center",
           borderWidth: 0,
           backgroundColor: hover
-            ? Colors.textInputBackground
+            ? Colors.LightGreen
             : Colors.MainHeading,
+          cursor: loading ? "not-allowed" : "pointer",
         }}
       />
     </div>

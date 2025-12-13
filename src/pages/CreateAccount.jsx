@@ -11,18 +11,17 @@ const CreateAccount = () => {
     <div
       style={{
         display: "flex",
-        width: "100vw", // 100% of Viewport Width
-        height: "100vh", // 100% of Viewport Height
-        position: "fixed", // <--- THIS forces it to ignore parent padding
-        top: 0, // Stick to top
-        left: 0, // Stick to left
-        margin: 0, // Remove margins
-        padding: 0, // Remove padding
-        overflow: "hidden", // Prevent double scrollbars
+        width: "100vw",
+        height: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        margin: 0,
+        padding: 0,
+        overflow: "hidden",
       }}
       className="MainCompo"
     >
-      {/* --- LEFT SIDE (IMAGE) --- */}
       <div
         style={{
           flex: 1.3,
@@ -100,7 +99,7 @@ const CreateAccount = () => {
             : "Already have an Account"}
           <div
             onClick={() => {
-              setAccountState(AccountState === "Login" ? "SignUp" : "Login");
+              setAccountState(AccountState === "Login" ? "Register" : "Login");
             }}
             style={{
               fontSize: "12px",
