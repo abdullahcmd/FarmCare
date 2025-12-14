@@ -82,6 +82,7 @@ export default function FarmerRequests() {
               style={{
                 display: "block",
                 marginBottom: "8px",
+                color: "#050505ff",
                 fontSize: "14px",
                 fontWeight: "600",
               }}
@@ -96,8 +97,9 @@ export default function FarmerRequests() {
               style={{
                 width: "100%",
                 padding: "8px",
+                color: "#050505ff",
                 borderRadius: "5px",
-                border: "1px solid #ccc",
+                border: "1px solid #050505ff",
               }}
             >
               <option value="">All</option>
@@ -113,6 +115,7 @@ export default function FarmerRequests() {
               style={{
                 display: "block",
                 marginBottom: "8px",
+                color: "#050505ff",
                 fontSize: "14px",
                 fontWeight: "600",
               }}
@@ -128,6 +131,7 @@ export default function FarmerRequests() {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "5px",
+                color: "#050505ff",
                 border: "1px solid #ccc",
               }}
             >
@@ -146,6 +150,7 @@ export default function FarmerRequests() {
                 display: "block",
                 marginBottom: "8px",
                 fontSize: "14px",
+                color: "#050505ff",
                 fontWeight: "600",
               }}
             >
@@ -162,6 +167,7 @@ export default function FarmerRequests() {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "5px",
+                color: "#050505ff",
                 border: "1px solid #ccc",
               }}
             />
@@ -173,6 +179,7 @@ export default function FarmerRequests() {
                 display: "block",
                 marginBottom: "8px",
                 fontSize: "14px",
+                color: "#050505ff",
                 fontWeight: "600",
               }}
             >
@@ -187,6 +194,7 @@ export default function FarmerRequests() {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "5px",
+                color: "#050505ff",
                 border: "1px solid #ccc",
               }}
             >

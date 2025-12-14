@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Colors } from "../../constants/colors";
 
 const InputField = ({
@@ -8,58 +8,134 @@ const InputField = ({
   placeholder,
   type = "text",
   error,
+  success,
+  required = false,
+  disabled = false,
   style,
   newStyle,
+  helperText,
 }) => {
+  const [focused, setFocused] = useState(false);
+
+  const getBorderColor = () => {
+    if (error) return "#f44336";
+    if (success) return Colors.SuccessGreen;
+    if (focused) return Colors.MainHeading;
+    return "#d1d5db";
+  };
+
+  const getBackgroundColor = () => {
+    if (disabled) return "#f5f5f5";
+    return Colors.textInputBackground;
+  };
+
   return (
-    <div style={newStyle}>
-      {/* 1. Label (Optional) */}
+    <div style={{ width: "100%", ...newStyle }}>
+      {/* Label */}
       {label && (
         <label
           style={{
             display: "block",
             textAlign: "left",
-            marginBottom: "5px",
-            fontWeight: "bold",
-            color: "#333",
+            marginBottom: "6px",
+            fontWeight: "600",
+            color: Colors.MainHeading,
+            fontSize: "14px",
           }}
         >
           {label}
+          {required && (
+            <span style={{ color: "#f44336", marginLeft: "4px" }}>*</span>
+          )}
         </label>
       )}
 
-      {/* 2. The Input Box */}
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        style={{
-          width: "100%",
-          padding: "10px",
-          color: "black",
-          borderRadius: "5px",
-          backgroundColor: Colors.textInputBackground,
-          border: error ? "1px solid red" : "1px solid #ccc", // Red border if error exists
-          outline: "none",
-          boxSizing: "border-box", // Crucial: prevents padding from breaking width
-          fontSize: "13px",
-          ...style, // Allows you to override styles from the parent
-        }}
-      />
-
-      {/* 3. Error Message (Only shows if error prop is passed) */}
-      {error && (
-        <span
+      {/* Input Container */}
+      <div style={{ position: "relative" }}>
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={{
-            color: "red",
+            width: "100%",
+            padding: "12px 16px",
+            color: disabled ? "#9ca3af" : Colors.MainHeading,
+            borderRadius: "8px",
+            backgroundColor: getBackgroundColor(),
+            border: `2px solid ${getBorderColor()}`,
+            outline: "none",
+            boxSizing: "border-box",
+            fontSize: "16px",
+            fontWeight: "400",
+            transition: "all 0.2s ease-in-out",
+            cursor: disabled ? "not-allowed" : "text",
+            ...style,
+          }}
+        />
+
+        {/* Success/Error Icons */}
+        {(success || error) && (
+          <div
+            style={{
+              position: "absolute",
+              right: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: "18px",
+              color: success ? Colors.SuccessGreen : "#f44336",
+            }}
+          >
+            {success ? "✓" : "⚠"}
+          </div>
+        )}
+      </div>
+
+      {/* Helper Text */}
+      {helperText && !error && !success && (
+        <div
+          style={{
+            color: "#6b7280",
             fontSize: "12px",
-            marginTop: "5px",
+            marginTop: "4px",
             display: "block",
           }}
         >
+          {helperText}
+        </div>
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <div
+          style={{
+            color: Colors.SuccessGreen,
+            fontSize: "12px",
+            marginTop: "4px",
+            display: "block",
+            fontWeight: "500",
+          }}
+        >
+          {typeof success === "string" ? success : "Valid input"}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div
+          style={{
+            color: "#f44336",
+            fontSize: "12px",
+            marginTop: "4px",
+            display: "block",
+            fontWeight: "500",
+          }}
+        >
           {error}
-        </span>
+        </div>
       )}
     </div>
   );

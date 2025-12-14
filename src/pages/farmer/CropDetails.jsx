@@ -13,6 +13,7 @@ export default function CropDetails() {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddLog, setShowAddLog] = useState(false);
+  const [editingLog, setEditingLog] = useState(null);
   const [logForm, setLogForm] = useState({
     date: new Date().toISOString().split("T")[0],
     stage: "",
@@ -47,17 +48,69 @@ export default function CropDetails() {
         date: new Date(logForm.date).toISOString(),
       });
       setShowAddLog(false);
-      setLogForm({
-        date: new Date().toISOString().split("T")[0],
-        stage: "",
-        notes: "",
-        irrigation: "",
-        fertilizer: "",
-      });
+      resetLogForm();
       loadCropDetails();
     } catch (error) {
       alert("Failed to add log");
     }
+  };
+
+  const handleEditLog = async (e) => {
+    e.preventDefault();
+    if (!editingLog) return;
+
+    try {
+      await cropLogAPI.update(id, editingLog.id, {
+        ...logForm,
+        irrigation: logForm.irrigation ? parseFloat(logForm.irrigation) : null,
+        date: new Date(logForm.date).toISOString(),
+      });
+      setEditingLog(null);
+      resetLogForm();
+      loadCropDetails();
+    } catch (error) {
+      alert("Failed to update log");
+    }
+  };
+
+  const handleDeleteLog = async (logId) => {
+    if (!window.confirm("Are you sure you want to delete this log entry?")) {
+      return;
+    }
+
+    try {
+      await cropLogAPI.delete(id, logId);
+      loadCropDetails();
+    } catch (error) {
+      alert("Failed to delete log");
+    }
+  };
+
+  const startEditLog = (log) => {
+    setEditingLog(log);
+    setLogForm({
+      date: new Date(log.date).toISOString().split("T")[0],
+      stage: log.stage || "",
+      notes: log.notes || "",
+      irrigation: log.irrigation?.toString() || "",
+      fertilizer: log.fertilizer || "",
+    });
+    setShowAddLog(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingLog(null);
+    resetLogForm();
+  };
+
+  const resetLogForm = () => {
+    setLogForm({
+      date: new Date().toISOString().split("T")[0],
+      stage: "",
+      notes: "",
+      irrigation: "",
+      fertilizer: "",
+    });
   };
 
   if (loading) {
@@ -223,10 +276,19 @@ export default function CropDetails() {
             Growth Logs
           </h3>
           <CustomButton
-            text={showAddLog ? "Cancel" : "+ Add Log"}
-            onClick={() => setShowAddLog(!showAddLog)}
+            text={
+              showAddLog ? "Cancel" : editingLog ? "Cancel Edit" : "+ Add Log"
+            }
+            onClick={() => {
+              if (editingLog) {
+                cancelEdit();
+              } else {
+                setShowAddLog(!showAddLog);
+              }
+            }}
             style={{
-              backgroundColor: showAddLog ? "#6c757d" : Colors.MainHeading,
+              backgroundColor:
+                showAddLog || editingLog ? "#6c757d" : Colors.MainHeading,
               color: "white",
               padding: "8px 16px",
               width: "auto",
@@ -234,9 +296,9 @@ export default function CropDetails() {
           />
         </div>
 
-        {showAddLog && (
+        {(showAddLog || editingLog) && (
           <form
-            onSubmit={handleAddLog}
+            onSubmit={editingLog ? handleEditLog : handleAddLog}
             style={{
               marginBottom: "20px",
               padding: "16px",
@@ -292,15 +354,31 @@ export default function CropDetails() {
                 placeholder="Additional notes"
                 newStyle={{ width: "100%" }}
               />
-              <CustomButton
-                type="submit"
-                text="Add Log"
-                style={{
-                  backgroundColor: Colors.MainHeading,
-                  color: "white",
-                  padding: "10px",
-                }}
-              />
+              <div style={{ display: "flex", gap: "12px" }}>
+                <CustomButton
+                  type="submit"
+                  text={editingLog ? "Update Log" : "Add Log"}
+                  style={{
+                    backgroundColor: Colors.MainHeading,
+                    color: "white",
+                    padding: "10px",
+                    flex: 1,
+                  }}
+                />
+                {editingLog && (
+                  <CustomButton
+                    type="button"
+                    text="Cancel"
+                    onClick={cancelEdit}
+                    style={{
+                      backgroundColor: "#6c757d",
+                      color: "white",
+                      padding: "10px",
+                      flex: 1,
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </form>
         )}
@@ -321,32 +399,97 @@ export default function CropDetails() {
                   backgroundColor: Colors.GreenBackground,
                   borderRadius: "8px",
                   borderLeft: `3px solid ${Colors.MainHeading}`,
+                  position: "relative",
                 }}
               >
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
+                    alignItems: "flex-start",
                     marginBottom: "8px",
                   }}
                 >
-                  <div style={{ fontWeight: "600", color: Colors.MainHeading }}>
-                    {new Date(log.date).toLocaleDateString()}
-                  </div>
-                  {log.stage && (
-                    <span
-                      style={{
-                        padding: "4px 12px",
-                        borderRadius: "20px",
-                        fontSize: "12px",
-                        backgroundColor: Colors.LightGreen,
-                        color: "white",
-                      }}
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{ fontWeight: "600", color: Colors.MainHeading }}
                     >
-                      {log.stage}
-                    </span>
-                  )}
+                      {new Date(log.date).toLocaleDateString()}
+                    </div>
+                    {log.stage && (
+                      <span
+                        style={{
+                          padding: "4px 12px",
+                          borderRadius: "20px",
+                          fontSize: "12px",
+                          backgroundColor: Colors.LightGreen,
+                          color: "white",
+                          marginTop: "4px",
+                          display: "inline-block",
+                        }}
+                      >
+                        {log.stage}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <button
+                      onClick={() => startEditLog(log)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: Colors.MediumGreen,
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        padding: "4px",
+                        borderRadius: "4px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor =
+                          "rgba(74, 124, 42, 0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent";
+                      }}
+                      title="Edit log"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLog(log.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#f44336",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        padding: "4px",
+                        borderRadius: "4px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor =
+                          "rgba(244, 67, 54, 0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent";
+                      }}
+                      title="Delete log"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
+
                 {log.notes && (
                   <div style={{ marginBottom: "8px", color: "#666" }}>
                     {log.notes}
